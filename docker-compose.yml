@@ -1,0 +1,49 @@
+services:
+  app:
+    container_name: api_server
+    environment:
+      - DB_MASTER_USER=${DB_MASTER_USER}
+      - DB_MASTER_PASSWORD=${DB_MASTER_PASSWORD}
+      - DB_MASTER_NAME=${DB_MASTER_NAME}
+      - DB_MASTER_HOST=${DB_MASTER_HOST}
+      - DB_MASTER_PORT=${DB_MASTER_PORT}
+      - DB_REPLICA_USER=${DB_REPLICA_USER}
+      - DB_REPLICA_PASSWORD=${DB_REPLICA_PASSWORD}
+      - DB_REPLICA_NAME=${DB_REPLICA_NAME}
+      - DB_REPLICA_HOST=${DB_REPLICA_HOST}
+      - DB_REPLICA_PORT=${DB_REPLICA_PORT}
+      - DB_USE_CLOUD_SQL=${DB_USE_CLOUD_SQL}
+      - SERVER_PORT=${SERVER_PORT}
+      - SERVER_MODE=dev
+      - STORAGE_ROOT_FOLDER=${STORAGE_ROOT_FOLDER}
+    tty: true
+    build:
+      context: .
+      dockerfile: dockerfile/api/Dockerfile
+    ports:
+      - 8000:${SERVER_PORT}
+    restart: on-failure
+    volumes:
+      - .:/app
+    depends_on:
+      - postgresdb
+    networks:
+      - apps
+
+  postgresdb:
+    image: postgres:latest
+    container_name: postgres_container
+    environment:
+      - POSTGRES_USER=${DB_MASTER_USER}
+      - POSTGRES_PASSWORD=${DB_MASTER_PASSWORD}
+      - POSTGRES_DB=${DB_MASTER_NAME}
+      - DATABASE_HOST=${DB_MASTER_HOST}
+      - DATABASE_PORT=${DB_MASTER_PORT}
+    ports:
+      - '5433:${DB_MASTER_PORT}'
+    networks:
+      - apps
+
+networks:
+  apps:
+    driver: bridge
